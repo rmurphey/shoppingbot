@@ -7,7 +7,7 @@ module.exports = function reply(answer, channel) {
         token,
         channel,
         text: answer.join('\n'),
-        username: 'shoppingbot'
+        username: 'shoppingbottest'
     }, (err) => {
         if (err) { throw err; }
     });

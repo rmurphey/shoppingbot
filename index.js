@@ -4,6 +4,7 @@ const slack = require('slack');
 
 const retry = require('./src/retry');
 const handleMessages = require('./src/handleMessages');
+require('./src/server');
 
 const token = process.env.SLACK_BOT_TOKEN;
 const bot = slack.rtm.client();

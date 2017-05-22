@@ -1,0 +1,10 @@
+html
+    head
+        link(rel='stylesheet', href='/static/styles.css')
+    body
+        form(action='/channel/' + channel, method='POST')
+            each item in items
+                li
+                    input(type='checkbox', name=item.name, value='0', id=item.name)
+                    label(for=item.name) #{item.label}
+            button(type='submit') Update

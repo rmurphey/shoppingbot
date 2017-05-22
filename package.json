@@ -9,7 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.17.2",
     "dotenv": "^4.0.0",
+    "express": "^4.15.3",
+    "pug": "^2.0.0-rc.1",
     "slack": "^8.3.1"
   },
   "devDependencies": {

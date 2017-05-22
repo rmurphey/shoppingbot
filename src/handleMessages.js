@@ -1,12 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-
-const backup = require('./backup');
 const parseItem = require('./parseItem');
 const reply = require('./reply');
-
-const backupFile = path.join(__dirname, '..', 'shopping.json');
-const shoppingLists = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+const data = require('./data');
 
 const actions = [
     'add',
@@ -15,25 +9,24 @@ const actions = [
     'show',
     'clear',
     'debug',
-    'help'
+    'help',
+    'shop'
 ];
 
 module.exports = function handleMessages(bot) {
     bot.message((message) => {
         const { channel, text } = message;
-        const [ action, ...items ] = text.toLowerCase().split(',');
-        const cleanItems = items
-            .map(item => item.trim())
-            .filter(item => item);
+        const list = data.getList(channel);
+        const [ action, ...items ] = text.toLowerCase().split(' ');
 
         if (!actions.includes(action)) { return; }
 
-        if (!shoppingLists[channel]) {
-            shoppingLists[channel] = {};
-        }
-
-        const list = shoppingLists[channel];
         const answer = [];
+
+        const cleanItems = (items || '').join('')
+            .split(',')
+            .map(item => item.trim())
+            .filter(item => item);
 
         if (action === 'help') {
             answer.push(`*options:* ${actions.join(' ')}`);
@@ -43,28 +36,31 @@ module.exports = function handleMessages(bot) {
             cleanItems.forEach((item) => {
                 let [ _item, increment ] = parseItem(item); // eslint-disable-line
                 increment = +(increment || 1);
-                list[_item] = list[_item] ? (list[_item] + increment) : increment;
-                answer.push(`:white_check_mark: ${_item} (${list[_item]})`);
+                data.updateList(channel, {
+                    [_item]: list[_item] ? (list[_item] + increment) : increment
+                });
+
+                answer.push(`:white_check_mark: ${_item} (${data.getCount(channel, _item)})`);
             });
         }
 
         if (action === 'update') {
             cleanItems.forEach((item) => {
                 const [ _item, count ] = parseItem(item);
-                list[_item] = +count;
 
-                if (!list[_item]) {
-                    delete list[_item];
-                    answer.push(`:x: ${item}`);
+                if (!+count) {
+                    data.deleteItem(channel, _item);
+                    answer.push(`:x: ${_item}`);
                 } else {
-                    answer.push(`:white_check_mark: ${_item} (${list[_item]})`);
+                    data.updateList(channel, { [_item]: +count });
+                    answer.push(`:white_check_mark: ${_item} (${+count})`);
                 }
             });
         }
 
         if (action === 'remove') {
             cleanItems.forEach((item) => {
-                delete list[item];
+                data.deleteItem(channel, item);
                 answer.push(`:x: ${item}`);
             });
         }
@@ -77,7 +73,7 @@ module.exports = function handleMessages(bot) {
         if (action === 'clear') {
             answer.push(':warning: CLEARED LIST!\n');
             answer.push(formattedList);
-            delete shoppingLists[channel];
+            data.deleteList(channel);
         }
 
         if (action === 'show') {
@@ -94,15 +90,13 @@ module.exports = function handleMessages(bot) {
         }
 
         if (action === 'debug') {
-            answer.push('```' + JSON.stringify(shoppingLists, null, 2) + '```'); // eslint-disable-line
+            answer.push('```' + JSON.stringify(list, null, 2) + '```'); // eslint-disable-line
         }
 
-        backup(backupFile, shoppingLists, (err) => {
-            if (err) {
-                console.error(err);
-            }
+        if (action === 'shop') {
+            answer.push(`https://${process.env.HOST}/channel/${channel}`);
+        }
 
-            reply(answer, channel);
-        });
+        reply(answer, channel);
     });
 };
