@@ -7,7 +7,7 @@ module.exports = function reply(answer, channel) {
         token,
         channel,
         text: answer.join('\n'),
-        username: 'shoppingbottest'
+        username: process.env.SLACK_USERNAME
     }, (err) => {
         if (err) { throw err; }
     });
