@@ -9,17 +9,12 @@ try {
     shoppingLists = {};
 }
 
-const noop = (err) => { console.error(err); };
-
-console.log('init data', shoppingLists);
-
-function backup(cb) {
-    fs.writeFile(BACKUP_FILE, JSON.stringify(shoppingLists, null, 2), cb || noop);
+function backup() {
+    fs.writeFile(BACKUP_FILE, JSON.stringify(shoppingLists, null, 2));
 }
 
 module.exports = {
     getList(channel) {
-        console.log('get list')
         if (!shoppingLists[channel]) {
             shoppingLists[channel] = {};
         }
@@ -28,13 +23,11 @@ module.exports = {
     },
 
     deleteList(channel) {
-        console.log('delete list')
         delete shoppingLists[channel];
         backup();
     },
 
     updateList(channel, obj) {
-        console.log('update list')
         shoppingLists[channel] = Object.assign({}, shoppingLists[channel], obj);
 
         Object.keys(shoppingLists[channel]).forEach((k) => {
@@ -47,13 +40,11 @@ module.exports = {
     },
 
     deleteItem(channel, item) {
-        console.log('delete item')
         delete shoppingLists[channel][item];
         backup();
     },
 
     getCount(channel, item) {
-        console.log('get count')
         return shoppingLists[channel][item];
     }
 };
