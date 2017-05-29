@@ -23,7 +23,7 @@ module.exports = function handleMessages(bot) {
 
         const answer = [];
 
-        const cleanItems = (items || '').join('')
+        const cleanItems = (items || '').join(' ')
             .split(',')
             .map(item => item.trim())
             .filter(item => item);
