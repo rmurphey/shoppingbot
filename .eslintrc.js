@@ -9,6 +9,7 @@ module.exports = {
         "consistent-return": "off",
         "indent": ["error", 4],
         "no-console": "off",
-        "no-underscore-dangle": "off"
+        "no-underscore-dangle": "off",
+        "no-param-reassign": "off"
     }
 };

@@ -9,6 +9,8 @@ module.exports = function reply(answer, channel) {
         text: answer.join('\n'),
         username: process.env.SLACK_USERNAME
     }, (err) => {
-        if (err) { throw err; }
+        if (err) {
+            console.error(err);
+        }
     });
 };

@@ -1,16 +1,22 @@
 const fs = require('fs');
 const { BACKUP_FILE } = require('./constants');
+const reply = require('./reply');
 
-let shoppingLists;
+let shoppingLists = {};
 
 try {
     shoppingLists = JSON.parse(fs.readFileSync(BACKUP_FILE, 'utf8'));
 } catch (e) {
-    shoppingLists = {};
+    console.warn(`Error reading ${BACKUP_FILE}`);
 }
 
-function backup() {
-    fs.writeFile(BACKUP_FILE, JSON.stringify(shoppingLists, null, 2));
+function backup(channel) {
+    fs.writeFile(BACKUP_FILE, JSON.stringify(shoppingLists, null, 2), (err) => {
+        if (err) {
+            console.error(err);
+            reply([ `Error writing backup file ${BACKUP_FILE}`, err.toString() ], channel);
+        }
+    });
 }
 
 module.exports = {
@@ -24,7 +30,7 @@ module.exports = {
 
     deleteList(channel) {
         delete shoppingLists[channel];
-        backup();
+        backup(channel);
     },
 
     updateList(channel, obj) {
@@ -36,12 +42,12 @@ module.exports = {
             }
         });
 
-        backup();
+        backup(channel);
     },
 
     deleteItem(channel, item) {
         delete shoppingLists[channel][item];
-        backup();
+        backup(channel);
     },
 
     getCount(channel, item) {

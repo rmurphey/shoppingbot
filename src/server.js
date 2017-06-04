@@ -19,13 +19,13 @@ app.get('/channel/:channel', (req, res) => {
 
 app.post('/channel/:channel', bodyParser.urlencoded({ extended: false }), (req, res) => {
     const { channel } = req.params;
-    const obj = {};
 
-    Object.keys(req.body).forEach((k) => {
+    const updated = Object.keys(req.body).reduce((obj, k) => {
         obj[k] = +req.body[k];
-    });
+        return obj;
+    }, {});
 
-    data.updateList(channel, obj);
+    data.updateList(channel, updated);
     res.redirect(`/channel/${channel}`);
 });
 

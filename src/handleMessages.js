@@ -90,6 +90,7 @@ module.exports = function handleMessages(bot) {
         }
 
         if (action === 'debug') {
+            answer.push(`channel: ${channel}`);
             answer.push('```' + JSON.stringify(list, null, 2) + '```'); // eslint-disable-line
         }
 

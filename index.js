@@ -15,7 +15,6 @@ function listen() {
             return retry(err, listen);
         }
 
-        console.log('connected');
         handleMessages(bot);
     });
 }
