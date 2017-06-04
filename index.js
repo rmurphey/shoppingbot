@@ -1,21 +1,44 @@
 require('dotenv').config();
 
 const slack = require('slack');
+const Mongo = require('mongodb').MongoClient;
 
 const retry = require('./src/retry');
 const handleMessages = require('./src/handleMessages');
-require('./src/server');
+
+const server = require('./src/server');
 
 const token = process.env.SLACK_BOT_TOKEN;
 const bot = slack.rtm.client();
 
 function listen() {
-    bot.listen({ token }, (err) => {
-        if (err) {
-            return retry(err, listen);
+    bot.listen({ token }, (slackErr) => {
+        if (slackErr) {
+            console.error(`Error connecting to database: ${slackErr}`);
+            return retry(slackErr, listen);
         }
 
-        handleMessages(bot);
+        console.log('Connected to Slack');
+
+        Mongo.connect('mongodb://127.0.0.1:27017/shopping', (mongoErr, db) => {
+            if (mongoErr) {
+                console.error(`Error connecting to database, dying: ${mongoErr}`);
+                throw mongoErr;
+            }
+
+            console.log('Connected to Mongo');
+
+            server(db, (serverErr) => {
+                if (serverErr) {
+                    console.error(`Error starting server, dying: ${serverErr}`);
+                    throw serverErr;
+                }
+
+                console.log('Started server');
+
+                handleMessages(bot, db);
+            });
+        });
     });
 }
 

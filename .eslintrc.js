@@ -10,6 +10,7 @@ module.exports = {
         "indent": ["error", 4],
         "no-console": "off",
         "no-underscore-dangle": "off",
-        "no-param-reassign": "off"
+        "no-param-reassign": "off",
+        "class-methods-use-this": "off"
     }
 };

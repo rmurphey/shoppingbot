@@ -1,56 +1,46 @@
-const fs = require('fs');
-const { BACKUP_FILE } = require('./constants');
-const reply = require('./reply');
+const async = require('async');
 
-let shoppingLists = {};
-
-try {
-    shoppingLists = JSON.parse(fs.readFileSync(BACKUP_FILE, 'utf8'));
-} catch (e) {
-    console.warn(`Error reading ${BACKUP_FILE}`);
+function createItem(name, count) {
+    return { name, count };
 }
 
-function backup(channel) {
-    fs.writeFile(BACKUP_FILE, JSON.stringify(shoppingLists, null, 2), (err) => {
-        if (err) {
-            console.error(err);
-            reply([ `Error writing backup file ${BACKUP_FILE}`, err.toString() ], channel);
-        }
-    });
-}
-
-module.exports = {
-    getList(channel) {
-        if (!shoppingLists[channel]) {
-            shoppingLists[channel] = {};
-        }
-
-        return shoppingLists[channel];
-    },
-
-    deleteList(channel) {
-        delete shoppingLists[channel];
-        backup(channel);
-    },
-
-    updateList(channel, obj) {
-        shoppingLists[channel] = Object.assign({}, shoppingLists[channel], obj);
-
-        Object.keys(shoppingLists[channel]).forEach((k) => {
-            if (!shoppingLists[channel][k]) {
-                delete shoppingLists[channel][k];
-            }
-        });
-
-        backup(channel);
-    },
-
-    deleteItem(channel, item) {
-        delete shoppingLists[channel][item];
-        backup(channel);
-    },
-
-    getCount(channel, item) {
-        return shoppingLists[channel][item];
+class Data {
+    constructor(db) {
+        this.db = db;
     }
-};
+
+    getList(channel, cb) {
+        this.db.collection(channel).find().toArray((err, items) => {
+            cb(err, items.reduce((acc, curr) => {
+                acc[curr.name] = curr.count;
+                return acc;
+            }, {}));
+        });
+    }
+
+    deleteList(channel, cb) {
+        this.db.collection(channel).deleteMany({}, cb);
+    }
+
+    updateList(channel, obj, cb) {
+        const items = Object.keys(obj).map(item => createItem(item, obj[item]));
+        const coll = this.db.collection(channel);
+
+        async.each(items, (item, _cb) => {
+            coll.findOneAndDelete({ name: item.name }, _cb);
+        }, (err) => {
+            if (err) { cb(err); }
+            coll.insertMany(items.filter(item => item.count > 0), cb);
+        });
+    }
+
+    deleteItem(channel, item, cb) {
+        this.db.collection(channel).deleteOne({ name: item }, cb);
+    }
+
+    debug(channel, cb) {
+        this.db.collection(channel).find().toArray(cb);
+    }
+}
+
+module.exports = Data;
