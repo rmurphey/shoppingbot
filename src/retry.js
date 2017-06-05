@@ -1,4 +1,4 @@
-const time = 5000;
+const time = 10000;
 let retries = 0;
 
 module.exports = function retry(err, cb) {
